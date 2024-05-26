@@ -342,7 +342,8 @@ void pastreaza_rute(TGL *g, char **rute, int R, float L) {
             edges = edges->next;
         }
         float sum = 0;
-        for (int j = 0; j < edges->n_sections; j++) {
+        int j = 0;
+        for (j = 0; j < edges->n_sections; j++) {
             sum += edges->sections[j];
         }
         float sum_medie = sum / edges->n_sections;
@@ -369,7 +370,8 @@ void afiseaza_rute(TGL *g, char **rute, int R, FILE *fout) {
             edges = edges->next;
         }
         fprintf(fout, "%s %s %d", rute[i], rute[i + 1], edges->n_sections);
-        for (int j = 0; j < edges->n_sections; j++) {
+        int j = 0;
+        for (j = 0; j < edges->n_sections; j++) {
             fprintf(fout, " %0.2f", edges->sections[j]);
         }
         fprintf(fout, "\n");

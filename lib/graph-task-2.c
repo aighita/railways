@@ -136,7 +136,8 @@ void get_connection_by_id(GraphCell *graph, int id, FILE *output) {
     bool found = false;
 
     while (nodeIndex < graph->total_nodes && !found) {
-        for (PConnection link = graph->connections[nodeIndex]; link != NULL; link = link->next) {
+        PConnection link;
+        for (link = graph->connections[nodeIndex]; link != NULL; link = link->next) {
             if (link->id == id && !link->is_reversed) {
                 fprintf(output, "%s %s\n", graph->node_names[nodeIndex], link->label);
                 found = true;
@@ -177,7 +178,8 @@ void calculate_distances(Graph graph, int start, int *distances) {
     int *processed = (int *) calloc(graph->total_nodes, sizeof(int));
     if (!processed) return;
 
-    for (int node = 0; node < graph->total_nodes; node++) {
+    int node = 0;
+    for (node = 0; node < graph->total_nodes; node++) {
         distances[node] = MAXIMUM;
     }
     distances[start] = 0;
