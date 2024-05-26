@@ -10,61 +10,64 @@
 #include <limits.h>
 #include <stdbool.h>
 
+// Structură care reprezintă legătura de genealogie între noduri.
 typedef struct {
-    int edge_id;
-    int parent_vertex;
-} TPCell, *TParent;
+    int link_id;
+    int parent_node;
+} Ancestry, *Ancestor;
 
-typedef struct edge_2 {
-    int id;
-    char *name;
-    int nr_seg;
-    int cost;
+// Structură care reprezintă o conexiune în rețea.
+typedef struct connection {
     bool is_reversed;
-    struct edge_2 *next;
-} TEdge, *PEdge;
+    int id;
+    char *label;
+    int segments;
+    int price;
+    struct connection *next;
+} Connection, *PConnection;
 
-typedef struct graph {
-    int n;
-    int cities_nb;
-    char **cities;
-    TParent *parents;
-    PEdge *edges;
-} TGCell, *TGraph;
-
-/**
- * @brief Creează și inițializează o nouă muchie.
- */
-PEdge create_edge(char *cityD, int cost, int id);
-
-/**
- * @brief Adaugă o muchie în graf.
- */
-void add_edge(TGraph graf, char *cityS, char *cityD, int cost, int edge_id);
+// Structură care reprezintă un graf (rețea).
+typedef struct network {
+    Ancestor *ancestors;
+    PConnection *connections;
+    int num_nodes;
+    int total_nodes;
+    char **node_names;
+} GraphCell, *Graph;
 
 /**
- * @brief Obține muchia corespunzătoare unui index și o afișează în fișierul de ieșire.
+ * @brief Creează și inițializează o nouă conexiune.
  */
-void get_edge_by_id(TGCell *graf, int id, FILE *out);
+PConnection create_connection(char *destination, int cost, int id);
 
 /**
- * @brief Distruge graful și eliberează memoria alocată pentru acesta.
+ * @brief Adaugă o conexiune în rețea.
  */
-void distruge_graph_2(TGraph graf);
+void add_connection(Graph graph, char *from, char *to, int cost, int connection_id);
 
 /**
- * @brief Obține indexul unui oraș în graf.
+ * @brief Obține conexiunea corespunzătoare unui index și o afișează în fișierul de ieșire.
  */
-int get_index_for_city(TGCell *graf, char *toFind);
+void get_connection_by_id(GraphCell *graph, int id, FILE *output);
 
 /**
- * @brief Inițializează un graf nou.
+ * @brief Distruge rețeaua și eliberează memoria alocată.
  */
-TGraph init_graph();
+void destroy_network(Graph graph);
 
 /**
- * @brief Algoritmul Dijkstra pentru calcularea distanțelor minime de la un nod sursă.
+ * @brief Obține indexul unui oraș în rețea.
  */
-void cerinta_2(TGraph graf, int start, int *distances);
+int find_node_index(GraphCell *graph, char *node_name);
+
+/**
+ * @brief Inițializează o nouă rețea.
+ */
+Graph init_network();
+
+/**
+ * @brief Algoritmul lui Dijkstra pentru calcularea distanțelor minime de la un nod sursă.
+ */
+void calculate_distances(Graph graph, int start, int *distances);
 
 #endif

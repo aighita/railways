@@ -1,165 +1,217 @@
-
 #include "graph-task-2.h"
 
-TGraph init_graph() {
-    TGraph g = (TGraph) malloc(sizeof(TGCell));
-    if (g == NULL) return NULL;
+#define MAXIMUM INT_MAX
 
-    memset(g, 0, sizeof(TGCell));
-    g->n = 0;
-    g->edges = NULL;
-    g->cities = NULL;
-    g->cities_nb = 0;
-    g->parents = NULL;
+Graph init_network() {
+    Graph g = (Graph) malloc(sizeof(GraphCell));
+    if (g == NULL) return NULL;
+    else memset(g, 0, sizeof(GraphCell));
+
+    g->num_nodes = 0;
+    g->connections = NULL;
+    g->node_names = NULL;
+    g->ancestors = NULL;
+    g->total_nodes = 0;
     return g;
 }
 
-PEdge create_edge(char *destination, int cost, int id) {
-    PEdge newEdge = (PEdge) malloc(sizeof(TEdge));
-    if (newEdge == NULL) return NULL;
+PConnection create_connection(char *target, int value, int identifier) {
+    PConnection conn = (PConnection) malloc(sizeof(Connection));
+    if (conn == NULL) return NULL;
 
-    // newEdge->name = strdup(destination);
-    newEdge->name = (char *) malloc(30 * sizeof(char));
-    strcpy(newEdge->name, destination);
-    newEdge->cost = cost;
-    newEdge->next = NULL;
-    newEdge->id = id;
-    newEdge->is_reversed = false;
+    size_t target_len = strlen(target);
+    conn->label = (char *) malloc((target_len + 1) * sizeof(char));
+    if (conn->label == NULL) {
+        free(conn);
+        return NULL;
+    }
 
-    return newEdge;
+    strcpy(conn->label, target);
+    conn->price = value;
+    conn->next = NULL;
+    conn->id = identifier;
+    conn->is_reversed = false;
+
+    return conn;
 }
 
-int get_index_for_city(TGCell *graf, char *toFind) {
-    if (graf == NULL) return -1;
+void add_connection(Graph graph, char *source, char *destination, int cost, int connection_id) {
+    PConnection connection = create_connection(destination, cost, connection_id);
+    int id = find_node_index(graph, source);
 
-    for (int i = 0; i < graf->cities_nb; i++) {
-        if (!strcmp(graf->cities[i], toFind)) {
+    if (id == -1) {
+        graph->total_nodes++;
+
+        char **new_node_names = malloc(graph->total_nodes * sizeof(char *));
+        if (new_node_names) {
+            int i = 0;
+            for (i = 0; i < graph->total_nodes - 1; i++) {
+                new_node_names[i] = graph->node_names[i];
+            }
+            new_node_names[graph->total_nodes - 1] = malloc(strlen(source) + 1);
+            if (new_node_names[graph->total_nodes - 1]) {
+                strcpy(new_node_names[graph->total_nodes - 1], source);
+            }
+            free(graph->node_names);
+            graph->node_names = new_node_names;
+        }
+
+        PConnection *new_connections = malloc(graph->total_nodes * sizeof(PConnection));
+        if (new_connections) {
+            int i = 0;
+            for (i = 0; i < graph->total_nodes - 1; i++) {
+                new_connections[i] = graph->connections[i];
+            }
+            new_connections[graph->total_nodes - 1] = connection;
+            free(graph->connections);
+            graph->connections = new_connections;
+        }
+
+        id = graph->total_nodes - 1;
+    } else {
+        PConnection temp = graph->connections[id];
+        while (temp && temp->next != NULL) {
+            temp = temp->next;
+        }
+        if (temp) {
+            temp->next = connection;
+        }
+    }
+
+    id = find_node_index(graph, destination);
+    PConnection reverse_connection = create_connection(source, cost, connection_id);
+    reverse_connection->is_reversed = true;
+
+    if (id != -1) {
+        reverse_connection->next = graph->connections[id];
+        graph->connections[id] = reverse_connection;
+    } else {
+        int new_size = graph->total_nodes + 1;
+        char **new_node_names = (char **) malloc(new_size * sizeof(char *));
+        PConnection *new_connections = (PConnection *) malloc(new_size * sizeof(PConnection));
+
+        if (new_node_names && new_connections) {
+            memcpy(new_node_names, graph->node_names, graph->total_nodes * sizeof(char *));
+            memcpy(new_connections, graph->connections, graph->total_nodes * sizeof(PConnection));
+
+            char *new_destination = (char *) malloc(strlen(destination) + 1);
+            if (new_destination) {
+                strcpy(new_destination, destination);
+            }
+
+            new_node_names[graph->total_nodes] = new_destination;
+            new_connections[graph->total_nodes] = reverse_connection;
+
+            free(graph->node_names);
+            free(graph->connections);
+
+            graph->node_names = new_node_names;
+            graph->connections = new_connections;
+            graph->total_nodes = new_size;
+
+            id = new_size - 1;
+        } else {
+            free(new_node_names);
+            free(new_connections);
+        }
+    }
+}
+
+int find_node_index(GraphCell *graph, char *toFind) {
+    if (graph == NULL) exit(-1);
+
+    int i = 0;
+    while (i < graph->total_nodes) {
+        if (!strcmp(graph->node_names[i], toFind)) {
             return i;
         }
+        i++;
     }
 
     return -1;
 }
 
-void add_edge(TGraph graf, char *source, char *destination, int cost, int edge_id) {
-    int id = get_index_for_city(graf, source);
-    PEdge edge = create_edge(destination, cost, edge_id);
+void get_connection_by_id(GraphCell *graph, int id, FILE *output) {
+    int nodeIndex = 0;
+    bool found = false;
 
-    if (id == -1) {
-        // Orașul sursă nu există deci il adaug
-        graf->cities_nb++;
-        graf->cities = realloc(graf->cities, graf->cities_nb * sizeof(char *));
-        // strcpy(graf->cities[graf->cities_nb - 1], source);
-        graf->cities[graf->cities_nb - 1] = strdup(source);
-        id = graf->cities_nb - 1;
-        graf->edges = realloc(graf->edges, graf->cities_nb * sizeof(PEdge));
-        graf->edges[graf->cities_nb - 1] = edge;
-    } else {
-        // Orașul sursă există
-        // Adaug muchia în lista de adiacență
-        PEdge temp = graf->edges[id];
-        while (temp->next != NULL) {
-            temp = temp->next;
+    while (nodeIndex < graph->total_nodes && !found) {
+        for (PConnection link = graph->connections[nodeIndex]; link != NULL; link = link->next) {
+            if (link->id == id && !link->is_reversed) {
+                fprintf(output, "%s %s\n", graph->node_names[nodeIndex], link->label);
+                found = true;
+                break;
+            }
         }
-        temp->next = edge;
-    }
-
-    id = get_index_for_city(graf, destination);
-    PEdge edge1 = create_edge(source, cost, edge_id);
-    edge1->is_reversed = true;
-
-    if (id == -1) {
-        // Orașul destinație nu există în graf deci il adaug
-        graf->cities_nb++;
-        graf->cities = realloc(graf->cities, graf->cities_nb * sizeof(char *));
-        // strcpy(graf->cities[graf->cities_nb - 1], destination);
-        graf->cities[graf->cities_nb - 1] = strdup(destination);
-        id = graf->cities_nb - 1;
-        graf->edges = realloc(graf->edges, graf->cities_nb * sizeof(PEdge));
-        graf->edges[graf->cities_nb - 1] = edge1;
-    } else {
-        // Orașul destinație există
-        // Adaug muchia inversată în lista de adiacență
-        edge1->next = graf->edges[id];
-        graf->edges[id] = edge1;
+        nodeIndex++;
     }
 }
 
-void cerinta_2(TGraph graf, int start, int *distances) {
-    int *visited = (int *) malloc(graf->cities_nb * sizeof(int));
-    if (visited == NULL) return;
+void destroy_network(Graph graph) {
+    if (graph) {
+        if (graph->node_names) {
+            int i = 0;
+            for (i = 0; i < graph->total_nodes; i++) {
+                free(graph->node_names[i]);
+            }
+            free(graph->node_names);
+        }
+        if (graph->connections) {
+            int i = 0;
+            for (i = 0; i < graph->total_nodes; i++) {
+                PConnection connection = graph->connections[i];
+                while (connection) {
+                    PConnection temp = connection;
+                    connection = connection->next;
+                    free(temp->label);
+                    free(temp);
+                }
+            }
+            free(graph->connections);
+        }
+        free(graph);
+    }
+}
 
-    // Inițializează vectorul de vizitare și distanțele
-    for (int i = 0; i < graf->cities_nb; i++) {
-        visited[i] = 0;
-        distances[i] = INT_MAX;
+void calculate_distances(Graph graph, int start, int *distances) {
+    int *processed = (int *) calloc(graph->total_nodes, sizeof(int));
+    if (!processed) return;
+
+    for (int node = 0; node < graph->total_nodes; node++) {
+        distances[node] = MAXIMUM;
     }
     distances[start] = 0;
 
-    // Parcurge toate nodurile din graf
-    for (int i = 0; i < graf->cities_nb - 1; i++) {
-        int minDist = INT_MAX;
-        int minIndex = -1;
-        // Găsește nodul nevizitat cu distanța minimă
-        for (int j = 0; j < graf->cities_nb; j++) {
-            if (visited[j] == 0 && distances[j] < minDist) {
-                minDist = distances[j];
-                minIndex = j;
+    while (1) {
+        int smallestDistance = MAXIMUM;
+        int currentNode = -1;
+
+        int i = 0;
+        for (i = 0; i < graph->total_nodes; i++) {
+            if (!processed[i] && distances[i] < smallestDistance) {
+                smallestDistance = distances[i];
+                currentNode = i;
             }
         }
 
-        if (minIndex != -1) {
-            int id = minIndex;
-            visited[id] = 1;
+        if (currentNode == -1) break;
 
-            // Actualizează distanțele pentru nodurile adiacente
-            for (PEdge edge = graf->edges[id]; edge != NULL; edge = edge->next) {
-                int j = get_index_for_city(graf, edge->name);
-                if (visited[j] == 0 && distances[id] + edge->cost < distances[j]) {
-                    graf->parents[j]->edge_id = edge->id;
-                    graf->parents[j]->parent_vertex = id;
-                    distances[j] = distances[id] + edge->cost;
+        processed[currentNode] = 1;
+        PConnection edge = graph->connections[currentNode];
+
+        while (edge != NULL) {
+            int neighbour = find_node_index(graph, edge->label);
+            if (!processed[neighbour]) {
+                int newDist = distances[currentNode] + edge->price;
+                if (newDist < distances[neighbour]) {
+                    distances[neighbour] = newDist;
+                    graph->ancestors[neighbour]->link_id = edge->id;
+                    graph->ancestors[neighbour]->parent_node = currentNode;
                 }
-            }
-        }
-    }
-
-    free(visited);
-}
-
-void get_edge_by_id(TGCell *graf, int id, FILE *out) {
-    for (int i = 0; i < graf->cities_nb; i++) {
-        PEdge edge = graf->edges[i];
-        while (edge) {
-            if ((edge->is_reversed == false) && (edge->id == id)) {
-                fprintf(out, "%s %s\n", graf->cities[i], edge->name);
-                return;
             }
             edge = edge->next;
         }
     }
-}
 
-void distruge_graph_2(TGraph graf) {
-    if (graf) {
-        if (graf->cities) {
-            for (int i = 0; i < graf->cities_nb; i++) {
-                free(graf->cities[i]);
-            }
-            free(graf->cities);
-        }
-        if (graf->edges) {
-            for (int i = 0; i < graf->cities_nb; i++) {
-                PEdge edge = graf->edges[i];
-                while (edge) {
-                    PEdge temp = edge;
-                    edge = edge->next;
-                    free(temp->name);
-                    free(temp);
-                }
-            }
-            free(graf->edges);
-        }
-        free(graf);
-    }
+    free(processed);
 }

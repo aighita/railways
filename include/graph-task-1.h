@@ -1,4 +1,6 @@
-/* GHIȚĂ Andrei-Iulian - 324CB */
+/**
+ *  Ghita Andrei-Iulian 324CB
+*/
 #include <stdio.h>
 
 #ifndef _GRAPH_H_

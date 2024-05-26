@@ -23,7 +23,8 @@ void print_graph(TGL *g) {
         // Parcurge lista de adiacență pentru fiecare nod
         while (edges != NULL) {
             printf("    %s - %d - [", edges->name, edges->n_sections);
-            for (int i = 0; i < edges->n_sections; i++) {
+            int i = 0;
+            for (i = 0; i < edges->n_sections; i++) {
                 printf(" %0.2f ", edges->sections[i]);
             }
             printf("]\n");
@@ -90,7 +91,8 @@ void add_to_graph(TGL **g, char *source, char *destination, int nr_seg, float *s
 
         // Aloc memorie pentru tronsoane și inversez
         (*g)->next->adj_list->sections = (float *) malloc(sizeof(float) * (nr_seg + 1));
-        for (int i = nr_seg - 1; i >= 0 ; i--) {
+        int i = 0;
+        for (i = nr_seg - 1; i >= 0 ; i--) {
             (*g)->next->adj_list->sections[i] = seg[nr_seg - i - 1];
         }
 
@@ -157,7 +159,8 @@ void add_to_graph(TGL **g, char *source, char *destination, int nr_seg, float *s
         current->adj_list->sections = (float *) malloc(sizeof(float) * (nr_seg + 1));
         memset(current->adj_list->sections, 0, sizeof(float) * (nr_seg + 1));
         // Adăugăm segmentele de tronson dar inversate
-        for (int i = nr_seg - 1; i >= 0; i--) {
+        int i = 0;
+        for (i = nr_seg - 1; i >= 0; i--) {
             current->adj_list->sections[i] = seg[nr_seg - i - 1];
         }
         current->next = *g;
@@ -174,7 +177,8 @@ void add_to_graph(TGL **g, char *source, char *destination, int nr_seg, float *s
         edges->n_sections = nr_seg;
         edges->sections = (float *) malloc(sizeof(float) * nr_seg);
         // Adăugăm segmentele de tronson dar inversate
-        for (int i = nr_seg - 1; i >= 0; i--) {
+        int i = 0;
+        for (i = nr_seg - 1; i >= 0; i--) {
             edges->sections[i] = seg[nr_seg - i - 1];
         }
         edges->next = NULL;
@@ -202,7 +206,8 @@ TGL *read_graph(FILE* fin, char **rute, int nr_rute) {
         seg = (float *) malloc(sizeof(float) * nr_seg);
 
         // Citim valorile de uzură pe tronsoane
-        for (int i = 0; i < nr_seg; i++) {
+        int i = 0;
+        for (i = 0; i < nr_seg; i++) {
             fscanf(fin, "%f", &seg[i]);
         }
 
@@ -243,7 +248,8 @@ void actualizeaza_graph(TGL *g) {
                 if (strcmp(aux_edges->name, current->name) == 0) break;
                 aux_edges = aux_edges->next;
             }
-            for (int i = 0; i < edges->n_sections; i++) {
+            int i = 0;
+            for (i = 0; i < edges->n_sections; i++) {
                 edges->sections[i] = float_max(aux_edges->sections[edges->n_sections - i - 1], edges->sections[i]);
             }
             edges = edges->next;
@@ -259,7 +265,8 @@ void cerinta1(TGL *g) {
     while (current != NULL) {
         AVertex edges = current->adj_list;
         while (edges != NULL) {
-            for (int i = 0; i < edges->n_sections; i++) {
+            int i = 0;
+            for (i = 0; i < edges->n_sections; i++) {
                 edges->sections[i] *= 2;
                 if (edges->sections[i] > 100) edges->sections[i] = 100;
             }
@@ -275,7 +282,8 @@ void cerinta1(TGL *g) {
         AVertex edges = current->adj_list;
         while (edges != NULL) {
             // Pentru fiecare edge al nodului
-            for (int i = 0; i < edges->n_sections; i++) {
+            int i = 0;
+            for (i = 0; i < edges->n_sections; i++) {
                 // Pentru fiecare tronson cu index != 0 și != n_sections - 1
                 if (edges->sections[i] == 0) {
                     if ((i > 0) && (i < edges->n_sections - 1)) {
@@ -321,7 +329,8 @@ void cerinta1(TGL *g) {
 }
 
 void pastreaza_rute(TGL *g, char **rute, int R, float L) {
-    for (int i = 0; i < 2 * R; i = i + 2) {
+    int i = 0;
+    for (i = 0; i < 2 * R; i = i + 2) {
         TGL *current = g;
         while (current != NULL) {
             if (strcmp(rute[i], current->name) == 0) break;
@@ -347,7 +356,8 @@ void pastreaza_rute(TGL *g, char **rute, int R, float L) {
 }
 
 void afiseaza_rute(TGL *g, char **rute, int R, FILE *fout) {
-    for (int i = 0; i < 2 * R; i += 2) {
+    int i = 0;
+    for (i = 0; i < 2 * R; i += 2) {
         TGL *current = g;
         while (current != NULL) {
             if (strcmp(rute[i], current->name) == 0) break;
