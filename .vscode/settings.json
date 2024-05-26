@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "unistd.h": "c",
+        "stdlib.h": "c",
+        "stdbool.h": "c",
+        "string.h": "c",
+        "helpers.h": "c",
+        "graph-task-1.h": "c",
+        "stdio.h": "c"
+    }
+}
