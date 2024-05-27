@@ -1,6 +1,3 @@
-/**
- *  Ghita Andrei-Iulian 324CB
-*/
 #include "../include/helpers.h"
 
 #include <stddef.h>

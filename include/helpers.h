@@ -1,6 +1,3 @@
-/**
- *  Ghita Andrei-Iulian 324CB
-*/
 #include <stdio.h>
 
 #ifndef _FUNCTIONS_H_

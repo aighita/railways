@@ -1,6 +1,3 @@
-/**
- *  Ghita Andrei-Iulian 324CB
-*/
 #ifndef GRAPH_TASK_2_H
 #define GRAPH_TASK_2_H
 

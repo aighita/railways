@@ -1,6 +1,3 @@
-/**
- * Ghita Andrei-Iulian 324CB
- */
 #include <stdlib.h>
 #include <string.h>
 
